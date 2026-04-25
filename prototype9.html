@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriSense - Precision Farming Intelligence</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, sans-serif;
+            background: linear-gradient(120deg, #d4e6b0 0%, #a3c68f 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .agri-card {
+            max-width: 750px;
+            width: 100%;
+            background: #2d3e2b;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header { background: #4a7c3f; padding: 1.5rem; color: white; }
+        .content { padding: 2rem; background: #fef9e6; }
+        .sensor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .sensor-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 1rem;
+            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .soil-moisture {
+            background: #e8f0fe;
+            border-radius: 1rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .progress-bar {
+            background: #cbd5e1;
+            border-radius: 1rem;
+            height: 1.2rem;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+        .progress-fill {
+            background: #2d6a4f;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .btn-group {
+            display: flex;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+        .btn {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 2rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-irrigate { background: #4a7c3f; color: white; }
+        .btn-drought { background: #d97706; color: white; }
+        .alert-box {
+            background: #ffedd5;
+            padding: 0.8rem;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            border-left: 5px solid #ea580c;
+        }
+    </style>
+</head>
+<body>
+<div class="agri-card">
+    <div class="header">
+        <h1>🌾 AgriSense</h1>
+        <p>IoT crop health · Predictive irrigation · Yield optimization</p>
+    </div>
+    <div class="content">
+        <div class="sensor-grid">
+            <div class="sensor-card">🌡️ Temperature<br><span id="tempVal">24.5</span>°C</div>
+            <div class="sensor-card">💧 Humidity<br><span id="humidVal">58</span>%</div>
+        </div>
+
+        <div class="soil-moisture">
+            <strong>💧 Soil Moisture (Critical for crop health)</strong>
+            <div class="progress-bar"><div class="progress-fill" id="moistureFill" style="width: 47%;"></div></div>
+            <span id="moisturePercent">47%</span> · <span id="soilStatus">Normal range</span>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-irrigate" id="irrigateBtn">💦 Activate Smart Irrigation</button>
+            <button class="btn btn-drought" id="droughtBtn">🔥 Simulate Heatwave / Drought</button>
+        </div>
+
+        <div id="recommendationBox" class="alert-box">
+            ✅ Crop health stable. Soil moisture adequate.
+        </div>
+
+        <div style="background:#e2e8f0; border-radius:1rem; padding:0.8rem; margin-top:1rem; font-size:0.8rem;">
+            📊 AI Prediction: Yield forecast <strong id="yieldForecast">4.2</strong> tons/hectare
+        </div>
+    </div>
+</div>
+
+<script>
+    let moisture = 47;
+    let temperature = 24.5;
+    let humidity = 58;
+    let droughtActive = false;
+
+    const moistureFill = document.getElementById("moistureFill");
+    const moistureSpan = document.getElementById("moisturePercent");
+    const soilStatusSpan = document.getElementById("soilStatus");
+    const tempSpan = document.getElementById("tempVal");
+    const humidSpan = document.getElementById("humidVal");
+    const recommendationBox = document.getElementById("recommendationBox");
+    const yieldSpan = document.getElementById("yieldForecast");
+
+    function updateUI() {
+        moistureFill.style.width = `${moisture}%`;
+        moistureSpan.innerText = `${moisture}%`;
+        tempSpan.innerText = temperature.toFixed(1);
+        humidSpan.innerText = humidity;
+        
+        if (moisture < 30) {
+            soilStatusSpan.innerHTML = "⚠️ CRITICAL DROUGHT STRESS · Immediate irrigation needed";
+            recommendationBox.innerHTML = "🚨 URGENT: Soil moisture critical. Activate irrigation immediately to prevent crop loss.";
+            recommendationBox.style.background = "#fee2e2";
+            recommendationBox.style.borderLeftColor = "#dc2626";
+        } else if (moisture < 45) {
+            soilStatusSpan.innerHTML = "⚠️ Dry condition · Irrigation recommended";
+            recommendationBox.innerHTML = "⚠️ Moderate water stress. Schedule irrigation within 24h.";
+            recommendationBox.style.background = "#ffedd5";
+            recommendationBox.style.borderLeftColor = "#f59e0b";
+        } else if (moisture > 75) {
+            soilStatusSpan.innerHTML = "⚠️ Over-saturated · Risk of root rot";
+            recommendationBox.innerHTML = "⚠️ Excess moisture detected. Reduce irrigation, improve drainage.";
+            recommendationBox.style.background = "#e0f2fe";
+        } else {
+            soilStatusSpan.innerHTML = "✅ Optimal moisture · Healthy crop";
+            recommendationBox.innerHTML = "✅ Crop health optimal. Maintain current irrigation schedule.";
+            recommendationBox.style.background = "#dcfce7";
+            recommendationBox.style.borderLeftColor = "#22c55e";
+        }
+        
+        let yieldBase = 4.5;
+        if (moisture < 30) yieldBase = 1.8;
+        else if (moisture < 45) yieldBase = 3.0;
+        else if (moisture > 75) yieldBase = 3.5;
+        else yieldBase = 4.8;
+        if (temperature > 32) yieldBase *= 0.8;
+        yieldSpan.innerText = yieldBase.toFixed(1);
+    }
+
+    document.getElementById("irrigateBtn").addEventListener("click", () => {
+        if (droughtActive) {
+            moisture = Math.min(100, moisture + 12);
+        } else {
+            moisture = Math.min(100, moisture + 18);
+        }
+        if (moisture > 80) moisture = 80;
+        updateUI();
+        recommendationBox.innerHTML = "💦 Irrigation cycle complete. Soil moisture increased. Monitoring evapotranspiration.";
+    });
+
+    document.getElementById("droughtBtn").addEventListener("click", () => {
+        droughtActive = true;
+        moisture = Math.max(10, moisture - 25);
+        temperature = 38;
+        humidity = 28;
+        updateUI();
+        recommendationBox.innerHTML = "🔥 HEATWAVE ALERT: Extreme conditions detected. Emergency irrigation recommended. Shade net advised.";
+    });
+
+    updateUI();
+</script>
+</body>
+</html>
